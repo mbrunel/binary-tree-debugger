@@ -18,7 +18,7 @@ void btd_console_print(Arbre a);
 */
 
 typedef struct __btd_trunk {
-    char *str;
+    char str[10]; // we need enough space to store utf-8
     struct __btd_trunk *prev;
 } _btd_trunk_node, *_btd_trunk;
 
@@ -27,15 +27,11 @@ _btd_trunk _btd_create_trunk(_btd_trunk prev, const char *str) {
     if (!t)
         return NULL;
     t->prev = prev;
-    if (!(t->str = strdup(str))) {
-        free(t);
-        return NULL;
-    }
+    strcpy(t->str, str);
     return t;
 }
 
 void _btd_destroy_trunk(_btd_trunk *trunk) {
-    free((*trunk)->str);
     free(*trunk);
     *trunk = NULL;
 }
@@ -53,26 +49,21 @@ void _btd_console_print_internal(Arbre a, _btd_trunk prev, int is_left) {
     const char *prev_str = "    ";
     _btd_trunk trunk = _btd_create_trunk(prev, prev_str);
     _btd_console_print_internal(a->fd, trunk, 1);
-    free(trunk->str);
     if (!prev)
-        trunk->str = strdup("———");
+        strcpy(trunk->str, "———");
     else if (is_left) {
-        trunk->str = strdup(".———");
+        strcpy(trunk->str, ".———");
         prev_str = "   |";
     }
     else {
-        trunk->str = strdup("`———");
-        free(prev->str);
-        prev->str = strdup(prev_str);
+        strcpy(trunk->str, "`———");
+        strcpy(prev->str, prev_str);
     }
     _btd_show_trunk(trunk);
     printf("(%d)\n", a->valeur);
-    if (prev) {
-        free(prev->str);
-        prev->str = strdup(prev_str);
-    }
-    free(trunk->str);
-    trunk->str = strdup("   |");
+    if (prev)
+        strcpy(prev->str, prev_str);
+    strcpy(trunk->str, "   |");
     _btd_console_print_internal(a->fg, trunk, 0);
     _btd_destroy_trunk(&trunk);
 }
